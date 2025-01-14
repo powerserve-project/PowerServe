@@ -1,0 +1,189 @@
+stages:
+  - check_format
+  - setup
+  - build
+  - deploy
+  - test
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $DAILY_TEST == "true"
+    ## git push 时不执行
+    - if: $CI_PIPELINE_SOURCE == "push"
+      when: never
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  IMAGE_NAME: ubuntu:22.04
+  CONTAINER_NAME: ndk
+  BUILD_ROOT: "/root"
+  QNN_SDK_26_ROOT: "/opt/qcom/aistack/qairt/2.26.0.240828"
+  QNN_SDK_27_ROOT: "/opt/qcom/aistack/qairt/2.27.7.241014"
+  QNN_SDK_28_ROOT: "/opt/qcom/aistack/qairt/2.28"
+  QNN_SDK_ROOT: ${QNN_SDK_28_ROOT}
+  DEVICE_ROOT: "/data/data/com.termux/files/home/CI"
+  DEVICE_BIN: "${DEVICE_ROOT}/smart-llama3.1-8b_n/bin"
+  DEVICE_SPEC_BIN: "${DEVICE_ROOT}/smart-llama3.1-8b-spec/bin"
+  DEVICE_MMMU_BIN: "${DEVICE_ROOT}/smart-internvl2-1b/bin"
+  TARGET_LLAMA3_1: "smart-llama3.1-8b_n"
+  TARGET_INTERNVL2_1: "smart-internvl2-1b"
+  TARGET_LLAMA3_1_SPEC: "smart-llama3.1-8b-spec"
+  TARGET_QWEN2: "smart-qwen2-7b"
+  DEVICE_HOST: "192.168.60.173"
+  DEVICE_USER: "u0_a342"
+  DEVICE_PORT: 8022
+  CHECK_FORMAT: "true"
+  # CI_DEBUG_TRACE: true
+  # 如果branch名称里含ci，就把CI_DEBUG_TRACE设置为true
+
+check_formatting:
+  stage: check_format
+  rules:
+    - if: $CHECK_FORMAT == "true"
+      when: always
+  script:
+    - export CLANG_FORMAT=/usr/bin/clang-format
+    - $CLANG_FORMAT --version
+    - cd "$CI_PROJECT_DIR"
+    - echo "Checking formatting from ${CI_MERGE_REQUEST_DIFF_BASE_SHA}..."
+    - pwd
+    - sleep 1
+    - exit 0
+    - changed_files=$(git diff ${CI_MERGE_REQUEST_DIFF_BASE_SHA} --name-only)
+    - echo "$changed_files"
+    - files_to_format=$(echo "$changed_files" | grep -v '\.md$' | grep -v '\.sh$' | grep -v '\.yml$' | grep -v '\.py$')
+    - if [[ -z "$files_to_format" ]]; then echo "No files changed; nothing to format"; exit 0; fi
+    - python tools/format.py $files_to_format
+    - format_exit_status=$?
+    - echo "$format_exit_status"
+    - if [[ "$format_exit_status" -eq "0" ]]; then echo "Formatting is correct"; exit 0; else echo "Detected formatting issues; please fix"; exit 1; fi
+
+build:
+  stage: build
+  script:
+    - whoami
+    - pwd
+    - source /qnn/bin/envsetup.sh
+    - cmake -DCMAKE_TOOLCHAIN_FILE=/ndk/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-34 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DPOWERSERVE_ENABLE_WERROR=ON -DPOWERSERVE_ENABLE_ASAN=OFF -DPOWERSERVE_WITH_QNN=ON -S . -B build_android
+    - cmake --build build_android --config RelWithDebInfo --parallel 12
+    - rm -rf ${BUILD_ROOT}/build_android
+    - cp -r . ${BUILD_ROOT}
+    - cp -r ./build_android ${BUILD_ROOT}
+
+deploy:
+  stage: deploy
+  script:
+    - sleep 2
+    - echo "Deploying binaries and models to your Android device. You must add gitlab-runner's and root's ssh public key to device's ~/.ssh/authorized_keys."
+    - ./.gitlab/ecmd.sh scp -o StrictHostKeyChecking=no -P ${DEVICE_PORT} ${BUILD_ROOT}/build_android/out/* ${DEVICE_USER}@${DEVICE_HOST}:${DEVICE_BIN}
+    - ./.gitlab/ecmd.sh scp -o StrictHostKeyChecking=no -P ${DEVICE_PORT} ${BUILD_ROOT}/build_android/out/* ${DEVICE_USER}@${DEVICE_HOST}:${DEVICE_MMMU_BIN}
+    - ./.gitlab/ecmd.sh scp -o StrictHostKeyChecking=no -P ${DEVICE_PORT} ${BUILD_ROOT}/build_android/out/* ${DEVICE_USER}@${DEVICE_HOST}:${DEVICE_SPEC_BIN}
+    - ./.gitlab/ecmd.sh ssh -o StrictHostKeyChecking=no -p "${DEVICE_PORT}" "${DEVICE_USER}@${DEVICE_HOST}" "ls -ahl ${DEVICE_BIN}"
+
+# =============== Required Tests ===============
+test_llama3.1:
+  stage: test
+  script:
+    - sleep 2 # just relax
+    - .gitlab/test-decode.sh ${DEVICE_ROOT} ${DEVICE_USER}@${DEVICE_HOST} ${DEVICE_PORT} ${TARGET_LLAMA3_1_SPEC} 0
+
+test_thread:
+  stage: test
+  script:
+    # - .gitlab/test-decode.sh ${DEVICE_ROOT} ${DEVICE_USER}@${DEVICE_HOST} ${DEVICE_PORT} ${TARGET_LLAMA3_1} 0 32 8
+    - echo "no test"
+  needs:
+    - test_llama3.1
+
+test_qnn:
+  stage: test
+  allow_failure: true
+  rules:
+    - when: always
+  script:
+    - sleep 2
+    - .gitlab/test-decode.sh ${DEVICE_ROOT} ${DEVICE_USER}@${DEVICE_HOST} ${DEVICE_PORT} ${TARGET_LLAMA3_1_SPEC} 1
+  needs:
+    - test_thread
+
+test_speculative:
+  stage: test
+  allow_failure: true
+  rules:
+    - when: always
+  script:
+    - sleep 1
+    - .gitlab/test-speculative.sh ${DEVICE_ROOT} ${DEVICE_USER}@${DEVICE_HOST} ${DEVICE_PORT} ${TARGET_LLAMA3_1_SPEC}
+  needs:
+    - test_qnn
+
+test_ppl:
+  stage: test
+  when: manual
+  allow_failure: true
+  rules:
+    - if: $CI_TEST_PPL == "true"
+      when: always
+    - when: manual
+  script:
+    - sleep 1
+    # - .gitlab/test-ppl.sh ${DEVICE_ROOT} ${DEVICE_USER}@${DEVICE_HOST} ${DEVICE_PORT} ${TARGET_LLAMA3_1}
+    - echo "no test"
+  needs:
+    - test_speculative
+
+# =============== Daily Tests ===============
+test_long_out:
+  stage: test
+  allow_failure: true
+  rules:
+    - if: $CI_TEST_LONG_OUT == "true"
+      when: always
+    - when: manual
+  script:
+    - sleep 10
+    # - .gitlab/test-decode.sh ${DEVICE_ROOT} ${DEVICE_USER}@${DEVICE_HOST} ${DEVICE_PORT} ${TARGET_LLAMA3_1} 1 2000 8 "math.txt"
+    - echo "no test"
+  needs:
+    - test_speculative
+
+test_mmlu_llama3.1:
+  stage: test
+  allow_failure: true
+  rules:
+    - if: $CI_TEST_MMLU == "true"
+      when: always
+    - when: manual
+  script:
+    - sleep 10
+    # - .gitlab/test-mmlu.sh ${DEVICE_ROOT} ${DEVICE_USER} ${DEVICE_HOST} ${DEVICE_PORT} ${CONTAINER_NAME} ${TARGET_LLAMA3_1}
+    - echo "no test"
+  needs:
+    - test_long_out
+
+test_mmlu_qwen2:
+  stage: test
+  allow_failure: true
+  rules:
+    - if: $CI_TEST_MMLU == "true"
+      when: always
+    - when: manual
+  script:
+    - sleep 10
+    # - .gitlab/test-mmlu.sh ${DEVICE_ROOT} ${DEVICE_USER} ${DEVICE_HOST} ${DEVICE_PORT} ${CONTAINER_NAME} ${TARGET_QWEN2}
+    - echo "no test"
+  needs:
+    - test_mmlu_llama3.1
+
+test_mmmu_internvl2-1b:
+  stage: test
+  allow_failure: true
+  rules:
+    - if: $CI_TEST_MMMU == "true"
+      when: always
+    - when: manual
+  script:
+    - sleep 10
+    # - .gitlab/test-mmmu.sh ${DEVICE_ROOT} ${DEVICE_USER} ${DEVICE_HOST} ${DEVICE_PORT} ${CONTAINER_NAME} ${TARGET_INTERNVL2_1}
+    - echo "no test"

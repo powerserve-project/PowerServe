@@ -1,0 +1,3 @@
+<|start_header_id|>user<|end_header_id|>
+Mark has a garden with flowers. He planted plants of three different colors in it. Ten of them are yellow, and there are 80% more of those in purple. There are only 25% as many green flowers as there are yellow and purple flowers. How many flowers does Mark have in his garden?<|eot_id|>
+<|start_header_id|>assistant<|end_header_id|>

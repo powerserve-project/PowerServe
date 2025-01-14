@@ -1,0 +1,8 @@
+./model_libs
+./output
+
+*.bin
+*.onnx
+*.cpp
+*.json
+*.so

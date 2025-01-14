@@ -1,0 +1,33 @@
+[submodule "libs/json"]
+	path = libs/json
+	url = https://github.com/nlohmann/json.git
+[submodule "libs/fmt"]
+	path = libs/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "libs/cli11"]
+	path = libs/cli11
+	url = https://github.com/CLIUtils/CLI11.git
+[submodule "libs/libuv"]
+	path = libs/libuv
+	url = https://github.com/libuv/libuv.git
+[submodule "libs/xtensor"]
+	path = libs/xtensor
+	url = https://github.com/xtensor-stack/xtensor.git
+[submodule "libs/xtl"]
+	path = libs/xtl
+	url = https://github.com/xtensor-stack/xtl.git
+[submodule "tools/mmmu_test/mmmu"]
+	path = tools/mmmu_test/mmmu
+	url = https://github.com/MMMU-Benchmark/MMMU.git
+[submodule "libs/stb_headers/stb"]
+	path = libs/stb_headers/stb
+	url = https://github.com/nothings/stb.git
+[submodule "libs/cpp-httplib"]
+	path = libs/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib.git
+[submodule "libs/concurrentqueue"]
+	path = libs/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue
+[submodule "libs/perfetto"]
+	path = libs/perfetto
+	url = https://android.googlesource.com/platform/external/perfetto

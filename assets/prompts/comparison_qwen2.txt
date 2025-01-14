@@ -1,0 +1,3 @@
+<|im_start|>user
+9.11 and 9.8, which is larger?<|im_end|>
+<|im_start|>assistant

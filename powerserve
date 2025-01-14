@@ -1,0 +1,226 @@
+#!/usr/bin/python3
+
+import argparse
+from pathlib import Path
+from typing import List, Dict
+import subprocess
+import json
+from datetime import datetime
+import logging
+import os
+import shutil
+
+# global config
+HYPER_PARAMS_FILENAME_KEY = "hparams_config"
+MAIN_MODEL_KEY = "model_main"
+DRAFT_MODEL_KEY = "model_draft"
+ARTIFACT_CONFIG_FILENAME = "workspace.json"
+MODEL_VOCAB_FILENAME = "vocab"
+EXECUTABLE_PATH_KEY = "executables"
+MODEL_CONFIG_FILENAME = "model.json"
+QNN_LIB_DIR_NAME = "qnn_libs"
+
+logging.basicConfig(
+    filename=f'powerserve_{datetime.today().strftime("%Y_%m_%d")}.log',
+    level=logging.INFO,
+    format="[%(asctime)s] - [%(levelname)s] - %(funcName)s - %(message)s",
+    datefmt="%Y-%m-%d-%H:%M:%S",
+)
+
+root_folder = Path(".").absolute()
+logging.info(f"current root: {root_folder}")
+
+default_hparams = {
+    "n_threads": 4,
+    "batch_size": 128,
+    # Default to greedy sampling (top_k = 1) without repeat penalty (penalty_repeat = 1).
+    "sampler": {
+        "seed": 0,
+        "temperature": 1.0,
+        "top_p": 1.0,
+        "top_k": 1,
+        "min_keep": 0,
+        "penalty_last_n": 64,
+        "penalty_repeat": 1,
+        "penalty_freq": 0,
+        "penalty_present": 0,
+        "penalize_nl": False,
+        "ignore_eos": False,
+    },
+}
+
+smallthinker_hparams = {
+    "n_threads": 4,
+    "batch_size": 128,
+    # Default to greedy sampling (top_k = 1) without repeat penalty (penalty_repeat = 1).
+    "sampler": {
+        "seed": 0,
+        "temperature": 0.5,
+        "top_p": 1.0,
+        "top_k": 20,
+        "min_keep": 0,
+        "penalty_last_n": 64,
+        "penalty_repeat": 1.15,
+        "penalty_freq": 0,
+        "penalty_present": 0,
+        "penalize_nl": False,
+        "ignore_eos": False,
+    },
+}
+
+def execute_command(cmd_args):
+    cmd = " ".join(map(str, cmd_args))
+    print(f"> {cmd}")
+    p = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, encoding="utf-8")
+    p.wait()
+    if p.returncode != 0:
+        error_info = p.stderr.read()
+        logging.error(error_info)
+        print(error_info)
+    assert p.returncode == 0
+
+def read_json(path: Path) -> Dict:
+    config = {}
+    with open(path, "r") as fp:
+        config = json.load(fp)
+    return config
+
+def write_json(path: Path, config: Dict):
+    with open(path, "w") as fp:
+        json.dump(config, fp, indent=4)
+
+def get_directories(path: Path):
+    if not os.path.exists(path):
+        print(f"{path} not exist")
+        return []
+
+    items = os.listdir(path)
+    directories = [item for item in items if os.path.isdir(os.path.join(path, item))]
+
+    return directories
+
+def get_files(path: Path):
+    if not os.path.exists(path):
+        print(f"{path} not exist")
+        return []
+    file_names = os.listdir(path)
+    files = [file for file in file_names if os.path.isfile(os.path.join(path, file))]
+
+    return files
+
+def prepare_qnn_libs(out_path: Path):
+    qnn_sdk_folder = os.getenv("QNN_SDK_ROOT")
+    if qnn_sdk_folder is None:
+        print("QNN_SDK_ROOT is not set")
+        return
+    qnn_sdk_folder = Path(qnn_sdk_folder)
+
+    qnn_libs_path = out_path / QNN_LIB_DIR_NAME
+    if not qnn_libs_path.exists():
+        qnn_libs_path.mkdir(parents=True, exist_ok=True)
+
+    hexagon_versions = [d for d in get_directories(qnn_sdk_folder / "lib") if "hexagon-" in d]
+
+    for hexagon_version in hexagon_versions:
+        qnn_libs_folder = qnn_sdk_folder / "lib" / hexagon_version / "unsigned"
+        if qnn_libs_folder.exists():
+            execute_command(["cp", "-r", f"{qnn_libs_folder}/libQnnHtpV*", qnn_libs_path, "| true"])
+        if "79" in hexagon_version:
+            execute_command(["cp", f"{qnn_libs_folder}/libQnnHexagonSkel_dspApp.so", qnn_libs_path, "| true"])
+
+    universal_libs = ["libQnnHtp.so", "libQnnSystem.so"]
+    android_libs_path = Path(qnn_sdk_folder) / "lib" / "aarch64-android"
+    for lib in universal_libs:
+        execute_command(["cp", "-r", f"{android_libs_path}/{lib}", qnn_libs_path])
+    execute_command(["cp", "-r", f"{android_libs_path}/libQnnHtpV*Stub.so", qnn_libs_path, "| true"])
+
+def powerserve_create(args):
+    out_path: Path = args.out_path
+    main_model_path: Path = args.main_model
+    draft_model_path: Path = args.draft_model
+    exe_path: Path = args.exe_path
+    
+    if args.only_extract_qnn:
+        prepare_qnn_libs(out_path)
+        return
+
+    if args.only_extract_qnn:
+        prepare_qnn_libs(out_path)
+        return
+
+    if not out_path.exists():
+        out_path.mkdir(parents=True, exist_ok=True)
+    assert out_path.is_dir(), f"{out_path} is not a directory"
+
+    artifact_config = {}
+
+    artifact_config[EXECUTABLE_PATH_KEY] = "bin"
+    bin_path = out_path / artifact_config[EXECUTABLE_PATH_KEY]
+    if not bin_path.exists():
+        bin_path.mkdir(parents=True, exist_ok=True)
+
+    if exe_path:
+        execute_command(["cp", exe_path / "*", bin_path])
+
+    artifact_config[HYPER_PARAMS_FILENAME_KEY] = "hparams.json"
+    hparams_config = default_hparams
+    if "smallthinker" in main_model_path.name:
+        hparams_config = smallthinker_hparams
+    write_json(out_path / artifact_config[HYPER_PARAMS_FILENAME_KEY], hparams_config)
+
+    artifact_config[MAIN_MODEL_KEY] = str(main_model_path.name)
+    main_model_abspath = out_path / artifact_config[MAIN_MODEL_KEY]
+
+    if not main_model_abspath.exists():
+        main_model_abspath.mkdir(parents=True, exist_ok=True)
+    execute_command(["cp", "-r", main_model_path / "*", main_model_abspath])
+
+    main_config = read_json(out_path / artifact_config[MAIN_MODEL_KEY] / MODEL_CONFIG_FILENAME)
+
+    if draft_model_path:
+        artifact_config[DRAFT_MODEL_KEY] = str(draft_model_path.name)
+        draft_model_abspath = out_path / artifact_config[DRAFT_MODEL_KEY]
+        if not draft_model_abspath.exists():
+            draft_model_abspath.mkdir(parents=True, exist_ok=True)
+        execute_command(["cp", "-r", draft_model_path / "*", draft_model_abspath])
+
+        draft_config = read_json(out_path / artifact_config[DRAFT_MODEL_KEY] / MODEL_CONFIG_FILENAME)
+        assert main_config["model_id"] != draft_config["model_id"]
+    else:
+        artifact_config[DRAFT_MODEL_KEY] = ""
+
+    if args.other_models:
+        for other_model_path in args.other_models:
+            other_model_abspath = out_path / str(other_model_path.name)
+            if not other_model_abspath.exists():
+                other_model_abspath.mkdir(parents=True, exist_ok=True)
+            execute_command(["cp", "-r", other_model_path / "*", other_model_abspath])
+
+    write_json(out_path / ARTIFACT_CONFIG_FILENAME, artifact_config)
+
+    if not args.no_extract_qnn:
+        prepare_qnn_libs(out_path)
+
+def command():
+    parser = argparse.ArgumentParser(prog="PowerServe", description="PowerServe CommandLine Tool")
+    subparser = parser.add_subparsers()
+    # ============== Create ==============
+    create_parser = subparser.add_parser("create")
+    create_parser.add_argument("-m", "--main-model", type=Path, required=True, help="Main model path")
+    create_parser.add_argument("-d", "--draft-model", type=Path, help="Draft model path", default=None)
+    create_parser.add_argument("--other-models", type=Path, help="other models path", nargs="+")
+    create_parser.add_argument("-o", "--out-path", type=Path, default=Path("./proj/"), help="Output path")
+    create_parser.add_argument("--exe-path", type=Path, required=False, default=None)
+    create_parser.add_argument(
+        "--only-extract-qnn", action="store_true", required=False, help="Set it to only extract qnn libs"
+    )
+    create_parser.add_argument(
+        "--no-extract-qnn", action="store_true", required=False, help="Set it not to extract qnn libs"
+    )
+    create_parser.set_defaults(func=powerserve_create)
+
+    args = parser.parse_args()
+
+    args.func(args)
+
+command()

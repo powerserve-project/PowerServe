@@ -1,0 +1,4 @@
+-r ./tools/convert_hf_to_gguf/requirements.txt
+
+isort
+black

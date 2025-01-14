@@ -1,0 +1,5 @@
+/*.json
+/prompt/*.txt
+dev/
+test/
+val/

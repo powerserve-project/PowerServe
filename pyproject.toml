@@ -1,0 +1,6 @@
+[tool.black]
+line-length = 120
+include = 'powerserve'
+extend-exclude = '/.*/'
+preview = true
+enable-unstable-feature = ['hug_parens_with_braces_and_square_brackets', 'docstring_check_for_newline']
