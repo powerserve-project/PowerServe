@@ -1,4 +1,4 @@
-## 导出3B模型
+## Export 3B Model
 
 ```bash
 rm -r /data/qnn_converter
@@ -28,7 +28,7 @@ python ./tools/gguf_export.py \
     -o /data/smallthinker_3b
 ```
 
-## 导出0.5B模型
+## Export 0.5B Model
 
 ```bash
 rm -r /data/qnn_converter
@@ -58,7 +58,7 @@ python ./tools/gguf_export.py \
     -o /data/smallthinker_500m
 ```
 
-## 编译项目
+## Compile the Project
 
 ```bash
 cmake -B build \
@@ -73,9 +73,9 @@ cmake -B build \
 time cmake --build build
 ```
 
-## 组装模型
+## Assemble the Model
 
-单独运行3B模型：
+Run the 3B model alone:
 
 ```bash
 ./powerserve create \
@@ -84,7 +84,7 @@ time cmake --build build
     --exe-path build/out
 ```
 
-单独运行0.5B模型：
+Run the 0.5B model alone:
 
 ```bash
 ./powerserve create \
@@ -93,7 +93,7 @@ time cmake --build build
     --exe-path build/out
 ```
 
-投机推理：
+Speculative inference
 
 ```bash
 ./powerserve create \
@@ -103,9 +103,9 @@ time cmake --build build
     --exe-path build/out
 ```
 
-## 运行
+## Run the Model
 
-上传模型到手机：
+Upload the model to the device:
 
 ```bash
 rsync -avzP ~/Downloads/smallthinker/ 8gen4:~/smallthinker/
@@ -117,9 +117,9 @@ rsync -avzP assets/prompts/*.txt 8gen4:~/
 # export UBSAN_OPTIONS=print_stacktrace=1
 export LD_LIBRARY_PATH=/system/lib64:/vendor/lib64
 
-# 不开投机推理
+# Turn off the speculative inference
 ./smallthinker/bin/powerserve-run --work-folder smallthinker --prompt-file comparison_qwen2.txt -n 1200
 
-# 开投机推理
+# Turn on the speculative inference
 ./smallthinker/bin/powerserve-speculative --work-folder smallthinker --prompt-file comparison_qwen2.txt -n 1200
 ```
