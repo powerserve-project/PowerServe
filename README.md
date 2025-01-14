@@ -7,6 +7,20 @@ PowerServe is a high-speed and easy-use LLM serving framework for local deployme
 - Achieves 40 tokens/s running Smallthinker on mobile devices
 - Support Android and HarmonyOS NEXT
 
+## Supported Models
+
+Here's the list of models that PowerServe supports:
+
+| Model Name             | Huggingface Link                                                                 | Speculation Support | Setting                  | Prefill Speed (tokens/s) | Decode Speed (tokens/s) |
+|------------------------|---------------------------------------------------------------------------------|---------------------|--------------------------|--------------------------|-------------------------|
+| smallthinker-3b        | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes                 | 8g3                      | 281.53                   | 19.74                   |
+| smallthinker-3b        | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes                 | 8g4 (q4_0 speculative)   | 758.865                  | 33.61                   |
+| llama-3.2-1b           | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G4) | No                  | 8g3                      | 497.630                  | 61.690                  |
+| qwen-2.5-3b            | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G4) | No                  | 8g3                      | 227.176                  | 21.03902                |
+| qwen-2-0.5b            | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G4) | No                  | 8g3                      | 981.6513                 | 105.6601                |
+
+We test these speeds with ./assets/gsm8k1.txt as the prompt file. More tests are multiple datasets will be conducted in the future.
+
 ## News
 - [2025/1/14] We release PowerServe 🎉
 
@@ -87,17 +101,6 @@ powerserve
 ```
 
 ## Model Preparation
-
-### Support models
-| Model Name | Huggingface Link | Speculation Support |
-| ---------- | ----------- | ------------------- |
-| smallthinker-3b | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes |
-| llama-3.1-8b | [Llama-3.1-8B](https://huggingface.co/PowerServe/Llama-3.1-8B-PowerServe-QNN29-8G4) | Yes |
-| llama-3.2-1b | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G4) | No |
-| qwen-2.5-3b | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G4) | No |
-| qwen-2-0.5b | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G4) | No |
-
-
 
 For CPU-only execution, only `Models For CPU` is required. For NPU execution, both `Models For CPU` and `Models For NPU` is required.
 
