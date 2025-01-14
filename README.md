@@ -11,15 +11,20 @@ PowerServe is a high-speed and easy-use LLM serving framework for local deployme
 
 Here's the list of models that PowerServe supports:
 
-| Model Name             | Huggingface Link                                                                 | Speculation Support | Setting                  | Prefill Speed (tokens/s) | Decode Speed (tokens/s) |
-|------------------------|---------------------------------------------------------------------------------|---------------------|--------------------------|--------------------------|-------------------------|
-| smallthinker-3b        | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes                 | 8g3                      | 281.53                   | 19.74                   |
-| smallthinker-3b        | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes                 | 8g4 (q4_0 speculative)   | 758.865                  | 33.61                   |
-| llama-3.2-1b           | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G4) | No                  | 8g3                      | 497.630                  | 61.690                  |
-| qwen-2.5-3b            | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G4) | No                  | 8g3                      | 227.176                  | 21.03902                |
-| qwen-2-0.5b            | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G4) | No                  | 8g3                      | 981.6513                 | 105.6601                |
+| Model Name | Huggingface Link | Speculation Support(Draft model) | Soc Setting | Prefill Speed (tokens/s) | Decode Speed (tokens/s) | Speculative Decode Speed (tokens/s) |
+|---|---|---|---|---|---|---|
+| smallthinker-3b | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G3) | Yes(smallthinker-0.5b) | 8G3 | 281.53 | 19.74 | 37.14 |
+| llama-3.2-1b | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G3) | No | 8G3 | 450.00 | 62.41 | / |
+| llama-3.1-8b | [Llama-3.1-8B](https://huggingface.co/PowerServe/Llama-3.1-8B-PowerServe-QNN29-8G3) | Yes(llama-3.2-1b) | 8G3 | 245.73 | 11.98 | 21.02 |
+| qwen-2-0.5b | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G3) | No | 8G3 | 878.05 | 104.01 | / |
+| qwen-2.5-3b | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G3) | No | 8G3 | 202.25 | 20.94 | / |
+| smallthinker-3b | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes(smallthinker-0.5b) | 8G4 | 281.25 | 20.90 | 42.52 |
+| llama-3.2-1b | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G4) | No | 8G4 | 496.59 | 59.00 | / |
+| llama-3.1-8b | [Llama-3.1-8B](https://huggingface.co/PowerServe/Llama-3.1-8B-PowerServe-QNN29-8G4) | Yes(llama-3.2-1b) | 8G4 | 290.83 | 12.42 | 22.83 |
+| qwen-2-0.5b | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G4) | No | 8G4 | 888.88 | 100.57 | / |
+| qwen-2.5-3b | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G4) | No | 8G4 | 219.51 | 22.10 | / |
 
-We test these speeds with ./assets/gsm8k1.txt as the prompt file. More tests are multiple datasets will be conducted in the future.
+We test these speeds with `./assets/gsm8k1.txt` as the prompt file. More tests on multiple datasets will be conducted in the future.
 
 ## News
 - [2025/1/14] We release PowerServe 🎉
