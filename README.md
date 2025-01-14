@@ -267,4 +267,4 @@ export LD_LIBRARY_PATH=/system/lib64:/vendor/lib64 && ./models/llama3.1-8b-instr
 
     | Phone    | Models can't be run |
     |----------|---------------------|
-    | All brands of HONOR | parameters larger than 3B |
+    | All smartphones of HONOR | LLMs larger than 3B |
