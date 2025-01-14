@@ -1,12 +1,14 @@
 # PowerServe
-PowerServe is a High-speed and easy-use LLM serving framework for local deployment.
+PowerServe is a high-speed and easy-use LLM serving framework for local deployment.
 
 ## Features
-- One-click deployment
+- [One-click compilation and deployment](./docs/end_to_end.md)
 - NPU speculative inference support
 - Achieves 40 tokens/s running Smallthinker on mobile devices
 - Support Android and HarmonyOS NEXT
 
+## News
+- [2025/1/15] We release PowerServe 🎉
 
 ## Table of Contents
 
