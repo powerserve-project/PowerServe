@@ -8,7 +8,7 @@ PowerServe is a high-speed and easy-use LLM serving framework for local deployme
 - Support Android and HarmonyOS NEXT
 
 ## News
-- [2025/1/15] We release PowerServe 🎉
+- [2025/1/14] We release PowerServe 🎉
 
 ## Table of Contents
 
