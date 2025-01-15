@@ -319,8 +319,6 @@ def main():
             compile_binary()
             print("\033[36mCompilation complete\033[0m \033[32m[OK]\033[0m")
         elif args.command == "run":
-            if "smallthinker" in args.model_name:
-                args.prompt = smallthinker_prompt
             run_model(args)
         elif args.command == "clean":
             clean_environment()
