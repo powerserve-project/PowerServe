@@ -13,14 +13,14 @@ Please make sure you locates at the PowerServe directory.
 Note that we have a few prerequisites for the end-to-end script:
 - Your computer should have docker installed. [How to install docker](https://docs.docker.com/get-started/get-docker/)
 - Your phone should open ADB debugging and connect to the computer. [How to enable ADB debugging](https://developer.android.google.cn/tools/adb) When you typing `adb shell` in your shell, you should see the shell of your phone.
-- Your Internet connection with github, docker and huggingface should be good. If you need to use a proxy, you can set the `https_proxy` at your host shell environment. If `https_proxy` is set, the end-to-end script will use the proxy to download the model and docker images automatically.
+- Your Internet connection with GitHub, docker and Hugging Face should be good. If you need to use a proxy, you can set the `https_proxy` at your host shell environment. If `https_proxy` is set, the end-to-end script will use the proxy to download the model and docker images automatically.
 
 These prerequisites are necessary for the end-to-end script to run successfully, no matter what operating system you are using.
 
 ## Linux or MacOS or WSL(Windows Subsystem for Linux)
 
 Table of supported models:
-| Model Name | Huggingface Link | Speculation Support |
+| Model Name | Hugging Face Link | Speculation Support |
 | ---------- | ----------- | ------------------- |
 | smallthinker-3b | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes |
 | llama-3.1-8b | [Llama-3.1-8B](https://huggingface.co/PowerServe/Llama-3.1-8B-PowerServe-QNN29-8G4) | Yes |
