@@ -181,7 +181,6 @@ void GGMLBackend::setup_threadpool() {
 }
 
 void GGMLBackend::reset_threadpool() {
-    POWERSERVE_LOG_DEBUG("reset_threadpool");
     m_thread_pool.reset();
 }
 
