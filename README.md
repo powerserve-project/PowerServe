@@ -24,7 +24,7 @@ Here's the list of models that PowerServe supports:
 | qwen-2-0.5b | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G4) | No | 8G4(8Elite) | TBC | 100.57 | / |
 | qwen-2.5-3b | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G4) | No | 8G4(8Elite) | TBC | 22.10 | / |
 
-We test these speeds with `./assets/gsm8k1.txt`, `./assets/gsm8k2.txt` and `./assets/long.txt` as input prompt files. More tests on multiple datasets will be conducted in the future.
+We test these speeds with files in `./assets/prompts`as input prompt files. More tests on multiple datasets will be conducted in the future.
 
 ## News
 - [2025/1/14] We release PowerServe 🎉

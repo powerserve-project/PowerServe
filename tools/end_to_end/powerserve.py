@@ -249,7 +249,7 @@ def deploy_to_phone(args, models):
     subprocess.run(["adb", "push", "--sync", "./proj/bin", f"{target_path}/proj/"], check=True)
     subprocess.run(["adb", "shell", f"chmod +x {target_path}/proj/bin/*"], check=True)
 
-    command = f'adb shell "{target_path}/proj/bin/powerserve-run -d {target_path}/proj -n 1500 -p \\"{args.prompt}\\"'
+    command = f'adb shell "{target_path}/proj/bin/powerserve-run -d {target_path}/proj -n {args.n_predicts} -p \\"{args.prompt}\\"'
     if args.speculation:
         command += " --use-spec"
     if args.cpu_only:
@@ -305,6 +305,7 @@ def main():
     run_parser = subparsers.add_parser("run", help=f"Run the model on the phone\n{model_help}")
     run_parser.add_argument("-p", "--prompt", default=default_prompt, help="Prompt to use")
     run_parser.add_argument("-f", "--prompt-file", help="File to read prompt from")
+    run_parser.add_argument("-n", "--n-predicts", type=int, default=1500, help="Number of predictions to make")
     run_parser.add_argument("-s", "--speculation", action="store_true", default=False, help="Enable speculation")
     run_parser.add_argument("-c", "--cpu-only", action="store_true", default=False, help="Use CPU only")
     run_parser.add_argument("model_name", help="Name of the model to run")
