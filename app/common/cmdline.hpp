@@ -56,7 +56,7 @@ struct CommandLineArgument {
     uint32_t num_predict = 16;
 
     /// The maximum number of tokens processed in one iteration
-    uint32_t batch_size = 32;
+    uint32_t batch_size = 0;
 
     /// Disable QNN backend
     bool no_qnn = false;

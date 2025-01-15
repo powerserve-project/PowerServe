@@ -3,7 +3,7 @@ First, set POWERSERVE_WITH_PERFETTO to ON during code compilation.
 Then explicitly start and stop tracing in your code, for example:
 
 ```c++
-powerserve::PerfettoTrace::instance().start_tracing(32 * 1024); // Buffer size in KiB 
+powerserve::PerfettoTrace::instance().start_tracing(32 * 1024); // Buffer size in KiB
 powerserve::TreeSpeculative spec(main_model, draft_model);
 spec.generate(tokenizer, sampler, prompt, n_predicts);
 spec.print_stat();

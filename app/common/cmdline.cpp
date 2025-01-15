@@ -59,6 +59,7 @@ CommandLineArgument parse_command_line(const std::string_view program_name, int 
     app.add_option("--workspace-config", args.workspace_config_path, "Set the path to the workspace config.");
 
     app.add_option("-t,--thread", args.num_thread, "Set the number of threads for inference.");
+    app.add_option("-b,--batch_size", args.batch_size, "Set the number of batch size for prefill.");
 
     /*
      * Model Configuration

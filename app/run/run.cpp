@@ -84,6 +84,7 @@ int main(int argc, char *argv[]) {
         POWERSERVE_LOG_INFO("n_predicts  : {}", args.num_predict);
         POWERSERVE_LOG_INFO("model arch  : {}", main_model->m_config->arch);
         POWERSERVE_LOG_INFO("n_threads   : {}", n_threads);
+        POWERSERVE_LOG_INFO("batch_size   : {}", batch_size);
     }
 
     // generate
