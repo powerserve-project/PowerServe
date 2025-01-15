@@ -8,7 +8,7 @@
 
 Please make sure you locates at the PowerServe directory.
 
-# Run the end-to-end Powerserve script.
+# Run the end-to-end PowerServe script.
 
 Note that we have a few prerequisites for the end-to-end script:
 - Your computer should have docker installed. [How to install docker](https://docs.docker.com/get-started/get-docker/)
