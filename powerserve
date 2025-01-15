@@ -164,7 +164,7 @@ def powerserve_create(args):
 
     artifact_config[HYPER_PARAMS_FILENAME_KEY] = "hparams.json"
     hparams_config = default_hparams
-    if "smallthinker" in main_model_path.name:
+    if "smallthinker" in main_model_path.name.lower():
         hparams_config = smallthinker_hparams
     write_json(out_path / artifact_config[HYPER_PARAMS_FILENAME_KEY], hparams_config)
 
