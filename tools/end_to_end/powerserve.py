@@ -18,6 +18,7 @@ MODEL_MAP = {
     "llama-3.2-1b": "PowerServe/Llama-3.2-1B-PowerServe-QNN29-{soc_name}",
     "qwen-2.5-3b": "PowerServe/Qwen-2.5-3B-PowerServe-QNN29-{soc_name}",
     "qwen-2-0.5b": "PowerServe/Qwen-2-0.5B-PowerServe-QNN29-{soc_name}",
+    "interlm-3-8b": "PowerServe/InternLM-3-8B-PowerServe-QNN29-{soc_name}",
 }
 
 # Updated SPECULATION_MAP to directly store model_name to {target_model, draft_model} mapping
@@ -197,6 +198,10 @@ def run_model(args):
         args.prompt = f"<|im_start|>user\n{args.prompt}<|im_end|>\n<|im_start|>assistant\n"
     elif "llama" in args.model_name:
         args.prompt = f"<|start_header_id|>user<|end_header_id|>\n{args.prompt}<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n"
+    elif "interlm" in args.model_name:
+        thinking_system_prompt="<|im_start|>system\nYou are an expert mathematician with extensive experience in mathematical competitions. You approach problems through systematic thinking and rigorous reasoning. When solving problems, follow these thought processes:\n## Deep Understanding\nTake time to fully comprehend the problem before attempting a solution. Consider:\n- What is the real question being asked?\n- What are the given conditions and what do they tell us?\n- Are there any special restrictions or assumptions?\n- Which information is crucial and which is supplementary?\n## Multi-angle Analysis\nBefore solving, conduct thorough analysis:\n- What mathematical concepts and properties are involved?\n- Can you recall similar classic problems or solution methods?\n- Would diagrams or tables help visualize the problem?\n- Are there special cases that need separate consideration?\n## Systematic Thinking\nPlan your solution path:\n- Propose multiple possible approaches\n- Analyze the feasibility and merits of each method\n- Choose the most appropriate method and explain why\n- Break complex problems into smaller, manageable steps\n## Rigorous Proof\nDuring the solution process:\n- Provide solid justification for each step\n- Include detailed proofs for key conclusions\n- Pay attention to logical connections\n- Be vigilant about potential oversights\n## Repeated Verification\nAfter completing your solution:\n- Verify your results satisfy all conditions\n- Check for overlooked special cases\n- Consider if the solution can be optimized or simplified\n- Review your reasoning process\nRemember:\n1. Take time to think thoroughly rather than rushing to an answer\n2. Rigorously prove each key conclusion\n3. Keep an open mind and try different approaches\n4. Summarize valuable problem-solving methods\n5. Maintain healthy skepticism and verify multiple times\nYour response should reflect deep mathematical understanding and precise logical thinking, making your solution path and reasoning clear to others.\nWhen you're ready, present your complete solution with:\n- Clear problem understanding\n- Detailed solution process\n- Key insights\n- Thorough verification\nFocus on clear, logical progression of ideas and thorough explanation of your mathematical reasoning. Provide answers in the same language as the user asking the question, repeat the final answer using a '\\boxed{}' without any units, you have [[3800]] tokens to complete the answer.\n<|im_end|>\n"
+        args.prompt = f"{thinking_system_prompt}<|im_start|>user\n{args.prompt}<|im_end|>\n<|im_start|>assistant\n"
+
     working_dir = "."
     if args.speculation:
         print("\033[32mTarget model: ", models[0].split("/")[-1], "\033[0m")
