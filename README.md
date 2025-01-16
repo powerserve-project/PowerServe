@@ -11,7 +11,7 @@ PowerServe is a high-speed and easy-use LLM serving framework for local deployme
 
 Here's the list of models that PowerServe supports:
 
-| Model Name      | Hugging Face Link                                                                         | Speculation Support(Draft model) | Soc Setting | Llama.cpp Prefill Speed | Prefill Speed (tokens/s) | Decode Speed (tokens/s) | Speculative Decode Speed (tokens/s) |
+| Model Name      | Hugging Face Link                                                                         | Speculation Support(Draft model) | Soc Setting | Llama.cpp Prefill Speed （tokens/s） | Prefill Speed (tokens/s) | Decode Speed (tokens/s) | Speculative Decode Speed (tokens/s) |
 |-----------------|-------------------------------------------------------------------------------------------|----------------------------------|-------------|--------------------------|--------------------------|-------------------------|-------------------------------------|
 | smallthinker-3b | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G3) | Yes(smallthinker-0.5b)           | 8G3         | 15.34                    | 975.00                   | 19.71                   | 38.75                               |
 | llama-3.2-1b    | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G3)       | No                               | 8G3         | 45.34                    | 1876.58                  | 58.99                   | /                                   |
