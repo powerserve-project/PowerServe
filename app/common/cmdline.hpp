@@ -39,6 +39,9 @@ struct CommandLineArgument {
     /// The number of thread for inference
     uint32_t num_thread = 0;
 
+    /// Apply chat template
+    bool use_chat_template = false;
+
     /*
      * Model & Input & Output Configuration
      */

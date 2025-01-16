@@ -79,8 +79,14 @@ int main(int argc, char *argv[]) {
     powerserve::SamplerChain sampler{sampler_config, tokenizer};
     POWERSERVE_LOG_INFO("after sampler init: {}", powerserve::perf_get_mem_result());
 
+    std::string prompt = args.prompt;
+    if (args.use_chat_template) {
+        std::vector<powerserve::ChatEntry> chat = {{"user", args.prompt}};
+        prompt                                  = tokenizer.apply_chat_template(chat, true);
+    }
+
     {
-        POWERSERVE_LOG_INFO("prompt      : {:?}", powerserve::abbreviation(args.prompt, 50));
+        POWERSERVE_LOG_INFO("prompt      : {:?}", powerserve::abbreviation(prompt, 50));
         POWERSERVE_LOG_INFO("n_predicts  : {}", args.num_predict);
         POWERSERVE_LOG_INFO("model arch  : {}", main_model->m_config->arch);
         POWERSERVE_LOG_INFO("n_threads   : {}", n_threads);
@@ -93,7 +99,7 @@ int main(int argc, char *argv[]) {
     long decode_end    = 0;
     bool start         = false;
     int actual_predict = 0;
-    for (const powerserve::Token prompt_token : tokenizer.tokenize(args.prompt, tokenizer.m_vocab.tokenizer_add_bos)) {
+    for (const powerserve::Token prompt_token : tokenizer.tokenize(prompt, tokenizer.m_vocab.tokenizer_add_bos)) {
         fmt::print("{}", tokenizer.to_string(prompt_token, false));
     }
     prefill_start = powerserve::timestamp_ms();
@@ -103,11 +109,11 @@ int main(int argc, char *argv[]) {
     std::shared_ptr<powerserve::SpeculativeModel> spec_model = nullptr;
     if (args.use_spec) {
         spec_model = std::make_shared<powerserve::SpeculativeModel>(main_model, draft_model, args.speculative_config);
-        iter       = spec_model->generate(tokenizer, sampler, args.prompt, args.num_predict, batch_size);
+        iter       = spec_model->generate(tokenizer, sampler, prompt, args.num_predict, batch_size);
     } else
 #endif
     {
-        iter = main_model->generate(tokenizer, sampler, args.prompt, args.num_predict, batch_size);
+        iter = main_model->generate(tokenizer, sampler, prompt, args.num_predict, batch_size);
     }
     prefill_end = powerserve::timestamp_ms();
 
@@ -132,7 +138,7 @@ int main(int argc, char *argv[]) {
 
     if (start) {
         decode_end               = powerserve::timestamp_ms();
-        const size_t num_prefill = tokenizer.tokenize(args.prompt, tokenizer.m_vocab.tokenizer_add_bos).size() - 1;
+        const size_t num_prefill = tokenizer.tokenize(prompt, tokenizer.m_vocab.tokenizer_add_bos).size() - 1;
         POWERSERVE_LOG_INFO("prefill time: {} s", (double)(prefill_end - prefill_start) / 1000);
         POWERSERVE_LOG_INFO(
             "prefill speed ({} tokens): {} tokens/s",
