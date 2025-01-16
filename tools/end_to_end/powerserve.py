@@ -210,7 +210,7 @@ def run_model(args):
     else:
         create_command = f'python3 {working_dir}/powerserve create --no-extract-qnn -m "{working_dir}/models/{target_model.split("/")[-1]}" --exe-path {working_dir}/build_android/out'
 
-    print("\033[36mCreating the workspace using Docker\033[0m")
+    print("\033[36mCreating the workspace\033[0m")
     host_command = [
         "python3",
         "powerserve",
