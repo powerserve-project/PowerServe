@@ -258,7 +258,7 @@ def deploy_to_phone(args, models):
     if args.speculation:
         command += " --use-spec"
     if args.cpu_only:
-        command += " --cpu-only"
+        command += " --no-qnn"
     command += '"'
 
     try:
@@ -318,6 +318,11 @@ def main():
     clean_parser = subparsers.add_parser("clean", help="Clean all environment(local and phone)")
 
     args = parser.parse_args()
+    
+    # if -s && -c then print error
+    if args.speculation and args.cpu_only:
+        print("\033[31mSpeculation only works with NPU, please remove -c/--cpu-only flag.\033[0m")
+        sys.exit(1)
 
     try:
         if args.command == "compile":
