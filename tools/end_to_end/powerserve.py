@@ -19,6 +19,7 @@ MODEL_MAP = {
     "qwen-2.5-3b": "PowerServe/Qwen-2.5-3B-PowerServe-QNN29-{soc_name}",
     "qwen-2-0.5b": "PowerServe/Qwen-2-0.5B-PowerServe-QNN29-{soc_name}",
     "internlm-3-8b": "PowerServe/InternLM-3-8B-PowerServe-QNN29-{soc_name}",
+    "deepseek-r1-llama-8b": "PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-{soc_name}",
 }
 
 # Updated SPECULATION_MAP to directly store model_name to {target_model, draft_model} mapping
@@ -31,6 +32,10 @@ SPECULATION_MAP = {
         "target_model": "PowerServe/Llama-3.1-8B-PowerServe-Speculate-QNN29-{soc_name}",
         "draft_model": "PowerServe/Llama-3.2-1B-PowerServe-QNN29-{soc_name}",
     },
+    # "deepseek-r1-llama-8b": {
+    #     "target_model": "PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-{soc_name}",
+    #     "draft_model": "PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-Speculate-QNN29-{soc_name}",
+    # },
 }
 
 SUPPORTED_MODELS = list(MODEL_MAP.keys())
