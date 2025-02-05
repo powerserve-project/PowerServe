@@ -32,10 +32,13 @@ SPECULATION_MAP = {
         "target_model": "PowerServe/Llama-3.1-8B-PowerServe-Speculate-QNN29-{soc_name}",
         "draft_model": "PowerServe/Llama-3.2-1B-PowerServe-QNN29-{soc_name}",
     },
-    # "deepseek-r1-llama-8b": {
-    #     "target_model": "PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-{soc_name}",
-    #     "draft_model": "PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-Speculate-QNN29-{soc_name}",
-    # },
+    "deepseek-r1-llama-8b": {
+        "target_model": "PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-{soc_name}",
+        "draft_model": {
+            "repo_id": "PowerServe/Llama-3.2-1B-PowerServe-QNN29-{soc_name}",
+            "revision": "deepseek_r1_distill_llama_draft"
+        },
+    },
 }
 
 SUPPORTED_MODELS = list(MODEL_MAP.keys())
@@ -153,7 +156,15 @@ def run_model(args):
         if args.model_name in SPECULATION_MAP:
             model_info = SPECULATION_MAP[args.model_name]
             target_model = model_info["target_model"].format(soc_name=soc_name)
-            draft_model = model_info["draft_model"].format(soc_name=soc_name)
+            draft_model_info = model_info["draft_model"]
+            
+            if isinstance(draft_model_info, dict):
+                draft_repo = draft_model_info["repo_id"].format(soc_name=soc_name)
+                draft_revision = draft_model_info.get("revision", "main")
+                draft_model = {"repo_id": draft_repo, "revision": draft_revision}
+            else:
+                draft_model = draft_model_info.format(soc_name=soc_name)
+            
             models = [target_model, draft_model]
         else:
             print(f"\033[31mSpeculation not supported for model {args.model_name}.\033[0m")
@@ -170,11 +181,25 @@ def run_model(args):
     cache_dir = os.path.join(os.getcwd(), ".cache")
     os.makedirs(cache_dir, exist_ok=True)
 
-    for model_repo in models:
-        model_dir = os.path.join("models", model_repo.split("/")[-1])
-        print(f"\033[36mDownloading model {model_repo} to {model_dir}\033[0m")
-        snapshot_download(repo_id=model_repo, local_dir=model_dir, local_dir_use_symlinks=False, cache_dir=cache_dir)
-        print(f"\033[36mDownloading model {model_repo}\033[0m \033[32m[OK]\033[0m")
+    for model_entry in models:
+        if isinstance(model_entry, dict):
+            repo_id = model_entry["repo_id"]
+            revision = model_entry.get("revision", "main")
+        else:
+            repo_id = model_entry
+            revision = "main"
+        
+        model_dir = os.path.join("models", repo_id.split("/")[-1])
+        print(f"\033[36mDownloading model {repo_id} (revision: {revision}) to {model_dir}\033[0m")
+        snapshot_download(
+            repo_id=repo_id,
+            revision=revision,
+            local_dir=model_dir,
+            local_dir_use_symlinks=False,
+            cache_dir=cache_dir
+        )
+        print(f"\033[36mDownloading model {repo_id}\033[0m \033[32m[OK]\033[0m")
+        
     if args.prompt_file:
         try:
             with open(args.prompt_file, "r") as f:
@@ -208,13 +233,20 @@ def run_model(args):
         args.prompt = f"{thinking_system_prompt}<|im_start|>user\n{args.prompt}<|im_end|>\n<|im_start|>assistant\n"
 
     working_dir = "."
+    # if there's dict in models, then extract it reponame to models
+    new_models = []
+    for model in models:
+        if isinstance(model, dict):
+            new_models.append(model["repo_id"])
+        else:
+            new_models.append(model)
+            
+    models = new_models
+    
     if args.speculation:
         print("\033[32mTarget model: ", models[0].split("/")[-1], "\033[0m")
         print("\033[32mDraft model: ", models[1].split("/")[-1], "\033[0m")
-        create_command = f'python3 {working_dir}/powerserve create --no-extract-qnn -m "{working_dir}/models/{models[0].split("/")[-1]}" -d "{working_dir}/models/{models[1].split("/")[-1]}" --exe-path {working_dir}/build_android/out'
-    else:
-        create_command = f'python3 {working_dir}/powerserve create --no-extract-qnn -m "{working_dir}/models/{target_model.split("/")[-1]}" --exe-path {working_dir}/build_android/out'
-
+        
     print("\033[36mCreating the workspace\033[0m")
     host_command = [
         "python3",

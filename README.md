@@ -19,13 +19,14 @@ Here's the list of models that PowerServe supports:
 | qwen-2-0.5b | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G3) | No | 8G3 | 3590.91 | 104.53 | / |
 | qwen-2.5-3b | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G3) | No | 8G3 | 906.98 | 21.01 | / |
 | internlm-3-8b | [InternLM-3-8B](https://huggingface.co/PowerServe/InternLM-3-8B-PowerServe-QNN29-8G3) | No | 8G3 | TBC | TBC | / |
-| deepseek-r1-llama-8b | [DeepSeek-R1-Distill-Llama-8B](https://huggingface.co/PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-8G3/tree/main) | No | 8G3 | TBC | TBC | / |
+| deepseek-r1-llama-8b | [DeepSeek-R1-Distill-Llama-8B](https://huggingface.co/PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-8G3/tree/main) | Yes(llama-3.2-1b) | 8G3 | TBC | TBC | / |
 | smallthinker-3b | [SmallThinker-3B](https://huggingface.co/PowerServe/SmallThinker-3B-PowerServe-QNN29-8G4) | Yes(smallthinker-0.5b) | 8G4(8Elite) | 1052.63 | 20.90 | 43.25 |
 | llama-3.2-1b | [Llama-3.2-1B](https://huggingface.co/PowerServe/Llama-3.2-1B-PowerServe-QNN29-8G4) | No | 8G4(8Elite) | 1952.38 | 59.00 | / |
 | llama-3.1-8b | [Llama-3.1-8B](https://huggingface.co/PowerServe/Llama-3.1-8B-PowerServe-QNN29-8G4) | Yes(llama-3.2-1b) | 8G4(8Elite) | 509.09 | 12.48 | 22.83 |
 | qwen-2-0.5b | [Qwen-2-0.5B](https://huggingface.co/PowerServe/Qwen-2-0.5B-PowerServe-QNN29-8G4) | No | 8G4(8Elite) | 4027.30 | 109.49 | / |
 | qwen-2.5-3b | [Qwen-2.5-3B](https://huggingface.co/PowerServe/Qwen-2.5-3B-PowerServe-QNN29-8G4) | No | 8G4(8Elite) | 981.69 | 22.19 | / |
 | internlm-3-8b | [InternLM-3-8B](https://huggingface.co/PowerServe/InternLM-3-8B-PowerServe-QNN29-8G4) | No | 8G4(8Elite) | 314.80 | 7.62 | / |
+| deepseek-r1-llama-8b | [DeepSeek-R1-Distill-Llama-8B](https://huggingface.co/PowerServe/DeepSeek-R1-Distill-Llama-8B-PowerServe-QNN29-8G4/tree/main) | Yes(llama-3.2-1b) | 8G4(8Elite) | 336.37 | 10.21 | / |
 
 We test these speeds with files in `./assets/prompts`as input prompt files. More tests on multiple datasets will be conducted in the future.
 
