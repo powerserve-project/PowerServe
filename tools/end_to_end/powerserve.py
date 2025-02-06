@@ -234,14 +234,14 @@ def run_model(args):
 
     working_dir = "."
     # if there's dict in models, then extract it reponame to models
-    new_models = []
+    model_names = []
     for model in models:
         if isinstance(model, dict):
-            new_models.append(model["repo_id"])
+            model_names.append(model["repo_id"])
         else:
-            new_models.append(model)
+            model_names.append(model)
             
-    models = new_models
+    models = model_names
     
     if args.speculation:
         print("\033[32mTarget model: ", models[0].split("/")[-1], "\033[0m")
@@ -355,17 +355,16 @@ def main():
     clean_parser = subparsers.add_parser("clean", help="Clean all environment(local and phone)")
 
     args = parser.parse_args()
-    
-    # if -s && -c then print error
-    if args.speculation and args.cpu_only:
-        print("\033[31mSpeculation only works with NPU, please remove -c/--cpu-only flag.\033[0m")
-        sys.exit(1)
 
     try:
         if args.command == "compile":
             compile_binary()
             print("\033[36mCompilation complete\033[0m \033[32m[OK]\033[0m")
         elif args.command == "run":
+        # if -s && -c then print error
+            if args.speculation and args.cpu_only:
+                print("\033[31mSpeculation only works with NPU, please remove -c/--cpu-only flag.\033[0m")
+                sys.exit(1)
             run_model(args)
         elif args.command == "clean":
             clean_environment()
