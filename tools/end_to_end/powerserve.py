@@ -226,6 +226,8 @@ def run_model(args):
         print("\033[32mSpeculation: ", args.speculation, "\033[0m")
     if "smallthinker" in args.model_name or "qwen" in args.model_name:
         args.prompt = f"<|im_start|>user\n{args.prompt}<|im_end|>\n<|im_start|>assistant\n"
+    elif "deepseek-r1-llama-8b" in args.model_name:
+        args.prompt = f"<｜User｜>\n{args.prompt}\n<｜Assistant｜>\n<think>"
     elif "llama" in args.model_name:
         args.prompt = f"<|start_header_id|>user<|end_header_id|>\n{args.prompt}<|eot_id|>\n<|start_header_id|>assistant<|end_header_id|>\n"
     elif "internlm" in args.model_name:
