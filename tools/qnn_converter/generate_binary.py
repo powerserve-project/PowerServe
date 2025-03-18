@@ -32,6 +32,7 @@ for graph in graph_names:
 backend_path = qnn_sdk_folder / "lib" / "x86_64-linux-clang" / "libQnnHtp.so"
 htp_setting_path = build_folder / "htp_setting.json"
 htp_config_path = build_folder / "htp_config.json"
+log_path = build_folder / args.log_file
 
 log_file = open(args.log_file, "w")
 
