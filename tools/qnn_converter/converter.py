@@ -108,7 +108,7 @@ if __name__ == "__main__":
         description="Convert the model in safetensors format to a QNN executable binary format."
     )
 
-    parser.add_argument("--n-threads", type=int, default=24, help="Number of threads to use when exporting to onnx.")
+    parser.add_argument("--n-threads", type=int, default=24, help="Number of threads to use when exporting the model.")
     parser.add_argument("--model-folder", type=str, help="Model folder path.", required=True)
     parser.add_argument("--model-name", type=str, help="Model name.", required=True)
     parser.add_argument(
