@@ -79,7 +79,8 @@ def main(args):
             --batch-size {i} \
             --n-model-chunks {args.n_model_chunks} \
             --artifact-name {args.artifact_name} \
-            --graph-names batch_{i}
+            --graph-names batch_{i} \ 
+            --n-threads {args.n_threads}
         """
         run_shell_command(generate_so_command)
 
