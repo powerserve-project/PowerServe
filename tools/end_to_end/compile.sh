@@ -49,3 +49,4 @@ rm -rf "${tempmodel2}" || true
 chmod -R 777 /code/proj
 chmod -R 777 /code/build_android
 chmod 777 /models
+chmod 777 *.log
