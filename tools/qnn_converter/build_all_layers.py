@@ -13,6 +13,7 @@ parser.add_argument("--n-model-chunks", type=int, required=True)
 parser.add_argument("--artifact-name", type=str, required=True)
 parser.add_argument("--graph-names", type=str, nargs="+", required=True)
 parser.add_argument("--soc", choices=soc_map.keys(), default="8gen3")
+parser.add_argument("--n-threads", type=int, required=True)
 args = parser.parse_args()
 
 
@@ -80,7 +81,7 @@ def build_binary(chunk_id: int):
 
 
 multiprocessing.Process()
-pool = multiprocessing.Pool(args.n_model_chunks if args.n_model_chunks < 16 else 16)
+pool = multiprocessing.Pool(args.n_model_chunks if args.n_model_chunks < args.n_threads else args.n_threads)
 chunk_ids = list(range(args.n_model_chunks))
 chunk_ids.insert(0, -1)
 if args.batch_size == -1:
