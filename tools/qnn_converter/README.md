@@ -21,12 +21,14 @@
     python converter.py \
     --model-folder Llama-3.2-1B-Instruct \
     --model-name llama3_2_1b \
-    --system-prompt-file system_prompt_llama.txt \
-    --prompt-file lab_intro_llama.md \
+    --system-prompt-file ./prompt/system_prompt_llama.txt \
+    --prompt-file ./prompt/lab_intro_llama.md \
     --batch-sizes 1 128 \
     --artifact-name llama3_2_1b \
     --n-model-chunk 1 \
-    --soc 8gen3
+    --silent \
+    --clear-build-files \
+    --soc 8650
     # Note:
     # 1. System-prompt-file and lab_intro_llama.md should be adjusted based on whether it is an Instruct model and the model template
     # 2. The number of batch sizes supports up to two.

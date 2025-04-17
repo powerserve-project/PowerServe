@@ -26,6 +26,11 @@
 #include <memory>
 #include <string>
 
+#ifdef POWERSERVE_DUMP_SPEEDINFO
+#include <iostream>
+#include <fstream>
+#endif //POWERSERVE_DUMP_SPEEDINFO
+
 int main(int argc, char *argv[]) {
     const powerserve::CommandLineArgument args = powerserve::parse_command_line("PowerServe CLI", argc, argv);
     const powerserve::Config config            = powerserve::get_config_from_argument(args);
@@ -147,7 +152,22 @@ int main(int argc, char *argv[]) {
         POWERSERVE_LOG_INFO(
             "total speed: {} tokens/s", (num_prefill + actual_predict) / (double)(decode_end - prefill_start) * 1000
         );
+
+#ifdef POWERSERVE_DUMP_SPEEDINFO
+    if(!args.use_spec) {
+        const char* env_dump_file = std::getenv("dump_file");
+        if (env_dump_file) {
+            std::string filename(env_dump_file);
+            std::ofstream outFile(filename, std::ios::out | std::ios::trunc);
+            if (outFile.is_open()) {
+                outFile << "{\"prefill_tokens\": " << num_prefill << ", \"prefill_time\": " << (double)(prefill_end - prefill_start) << ", \"decode_tokens\": " << actual_predict << ", \"decode_time\": " << (double)(decode_end - prefill_end) << "}";
+                outFile.close();
+            }
+        }
     }
+#endif //POWERSERVE_DUMP_SPEEDINFO
+    }
+    
 #if defined(POWERSERVE_WITH_QNN)
     if (args.use_spec) {
         spec_model->print_stat();

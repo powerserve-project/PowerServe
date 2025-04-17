@@ -176,7 +176,9 @@ python converter.py                                 \
     --n-model-chunk 4                               \
     --output-folder ./llama3.1-8b-QNN               \
     --build-folder ./llama3.1-8b-QNN-tmp            \
-    --soc 8gen4
+    --silent \
+    --clear-build-files \
+    --soc 8650
 
 ```
 Convert GGUF models and integrate them with QNN models
@@ -225,7 +227,10 @@ cmake -B build                                                      \
     -DANDROID_ABI=arm64-v8a                                         \
     -DANDROID_PLATFORM=android-35                                   \
     -DGGML_OPENMP=OFF                                               \
-    -DPOWERSERVE_WITH_QNN=ON
+    -DPOWERSERVE_WITH_QNN=ON                                        \
+    -DPOWERSERVE_ENABLE_HTPRPCPOLL=ON                               \
+    -DPOWERSERVE_ENABLE_HMXPWRCFG=ON                                \
+    -DPOWERSERVE_USE_DUMMY=ON
 
 cmake --build build
 ```
@@ -265,15 +270,6 @@ export LD_LIBRARY_PATH=/system/lib64:/vendor/lib64 && ./models/llama3.1-8b-instr
 ```
 
 ## Known Issues
-
-### Model Conversion
-
-1. **When exporting model to onnx**: RuntimeError: The serialized model is larger than the 2GiB limit imposed by the protobuf library. Therefore the output file must be a file path, so that the ONNX external data can be written to the same directory. Please specify the output file name.
-
-    > The version of pytorch should be less than **2.5.1**. Please reinstall pytorch like:
-    > ```shell
-    > pip install pytorch==2.4.1
-    > ```
 
 ### Execution
 

@@ -70,6 +70,7 @@ rope_type get_rope_type(std::string arch) {
 void collect_config(gguf_context *gguf_ctx, nlohmann::json &config);
 
 int main(int argc, char *argv[]) {
+    printf("This tool is buggy! You still need to modify the model.json by yourself.\n");
     std::string file_path   = "/home/zwb/Downloads/Llama-2-7b-chat-hf/llama-2-7b.f32.gguf";
     std::string target_path = "./llama-2-7b.json";
     CLI::App app("Config Generator");

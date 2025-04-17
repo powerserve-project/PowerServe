@@ -11,8 +11,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--build-folder", type=Path, required=True)
 parser.add_argument("--artifact-name", type=str, required=True)
 parser.add_argument("--graph-names", type=str, nargs="+", required=True)
-parser.add_argument("--soc", choices=soc_map.keys(), default="8gen3")
+parser.add_argument("--soc", choices=soc_map.keys(), default="8650")
 parser.add_argument("--log-file", type=str, default="build_bin.log")
+parser.add_argument("--silent", action="store_true", help="Hide the shell command arguments.")
 
 args = parser.parse_args()
 
@@ -32,14 +33,18 @@ for graph in graph_names:
 backend_path = qnn_sdk_folder / "lib" / "x86_64-linux-clang" / "libQnnHtp.so"
 htp_setting_path = build_folder / "htp_setting.json"
 htp_config_path = build_folder / "htp_config.json"
-log_path = build_folder / args.log_file
 
-log_file = open(args.log_file, "w")
+log_path = build_folder / args.log_file
+log_file = open(log_path, "w")
 
 
 def run(cmd_args: list):
     cmd = " ".join(map(str, cmd_args))
-    print(f"> {cmd}")
+    if args.silent:
+        cmd_short = " ".join(map(str, cmd_args[:1]))
+        print(f"> {cmd_short}")
+    else:
+        print(f"> {cmd}")
     ret = subprocess.Popen(cmd, shell=True, stdout=log_file, stderr=log_file).wait()
     assert ret == 0
 

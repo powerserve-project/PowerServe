@@ -87,12 +87,13 @@ class LinearWithQuantizationDebugger(nn.Linear):
 
 
 # TODO: Add command line option for it.
+# Switch between the following lines to enable/disable quantization debugging
 linear_class = nn.Linear  # Disable quantization debug
 # linear_class = LinearWithQuantizationDebugger
 
-stat_output_folder = None
-# Uncomment the following line to enable activation stat profiling
-# stat_output_folder = Path("./smallthinker_3b_stat")
+# Switch between the following lines to enable/disable activation stat profiling
+stat_output_folder = None # Disable activation profiling
+# stat_output_folder = Path("./activation_stats")
 
 
 class LlamaRoPE(nn.Module):

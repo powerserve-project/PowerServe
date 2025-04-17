@@ -29,7 +29,7 @@ fi
 cd /code
 
 echo -e "\033[32mCreating build directory for Android\033[0m"
-cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-34 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=OFF -DGGML_OPENMP=OFF -DPOWERSERVE_WITH_QNN=ON -S . -B build_android
+cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_NDK/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-34 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=OFF -DGGML_OPENMP=OFF -DPOWERSERVE_WITH_QNN=ON -DPOWERSERVE_ENABLE_HTPRPCPOLL=ON -DPOWERSERVE_ENABLE_HMXPWRCFG=ON -DPOWERSERVE_USE_DUMMY=ON -S . -B build_android
 
 echo -e "\033[32mBuilding project for Android\033[0m"
 cmake --build build_android --config RelWithDebInfo --parallel 12 --target all

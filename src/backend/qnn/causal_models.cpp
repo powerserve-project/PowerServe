@@ -97,6 +97,8 @@ void CausalLM::load_model_chunks() {
         return a->batch_size == b->batch_size ? a->start_layer_id < b->start_layer_id : a->batch_size > b->batch_size;
     };
     std::sort(chunk_configs.begin(), chunk_configs.end(), cmp);
+
+#ifdef POWERSERVE_USE_DUMMY
     std::unique_ptr<SharedBufferAllocator> dummy_alloc;
     std::unique_ptr<SharedBuffer> dummy_buffer;
     constexpr size_t dummy_sizes[] = {1024 * 1024 * 512, 1024 * 1024 * 256, 1024 * 1024 * 128};
@@ -112,6 +114,8 @@ void CausalLM::load_model_chunks() {
             dummy_buffer.reset(nullptr);
         }
     }
+#endif //POWERSERVE_USE_DUMMY
+
     for (auto config : chunk_configs) {
         auto &chunks = m_chunks_map[config->batch_size];
         chunks.emplace_back(std::make_unique<ModelChunk>(*this, *config));
@@ -123,8 +127,12 @@ void CausalLM::load_model_chunks() {
     kv_cache         = std::make_unique<KVCache<CausalLMKV>>(
         m_model_config->llm.n_layers, m_model_config->llm.n_kv_heads, m_gparams.cache_size, *this, max_chunks
     );
+
+#ifdef POWERSERVE_USE_DUMMY
     dummy_buffer.reset(nullptr);
     dummy_alloc.reset(nullptr);
+#endif //POWERSERVE_USE_DUMMY
+
     for (size_t i = 0; i < max_chunks.size(); i++) {
         auto &max_chunk = *max_chunks[i];
 
@@ -225,6 +233,68 @@ void CausalLM::reset_kv_cache() {
     kv_cache->truncate_tokens(m_gparams.kv_size);
 }
 
+#ifdef POWERSERVE_DUMP_TENSORS
+void print_chunk_tensors(const ModelChunk* chunk, size_t max_show_layers, size_t max_show_heads) {
+    fmt::println("--------------------Dumping QNN Buffers--------------------");
+    fmt::println("Layers: {} to {}", chunk->m_config.start_layer_id, chunk->m_config.end_layer_id);
+
+    // X: [batch_size, embedding_dim]
+    std::vector<size_t> dump_x_elems={4, 8};
+    chunk -> m_tensors.at("x") -> dump(dump_x_elems);
+
+    // ROPE: [batch_size, rope_dim]
+    std::vector<size_t> dump_rope_elems={1, 8};
+    chunk -> m_tensors.at("rope_embed_sin") -> dump(dump_rope_elems);
+    chunk -> m_tensors.at("rope_embed_cos") -> dump(dump_rope_elems);
+
+    // MASK: [batch_size, ctx_length]
+    std::vector<size_t> dump_mask_elems={1, 32};
+    chunk -> m_tensors.at("attn_bias") -> dump(dump_mask_elems);
+
+    const size_t num_layers = chunk->n_layers();
+    const size_t n_kv_heads = chunk->m_model_config.llm.n_kv_heads;
+    const size_t start_layer_id = chunk->m_config.start_layer_id;
+
+    // KEY / VALUE: [batch_size, head_dim]
+    std::vector<size_t> dump_kv_elems={1, 32};
+
+    // We don't recommend to dump KV cache as it is hard to find the token id you want
+    // KEY TRANSPOSED CACHE: [head_dim, ctx_length]
+    std::vector<size_t> dump_ktc_elems={32, 64};
+    // VALUE CACHE: [ctx_length, head_dim]
+    std::vector<size_t> dump_vc_elems={64, 32};
+
+    for (size_t l = 0; l < num_layers && l < max_show_layers; l++) {
+        for (size_t h = 0; h < n_kv_heads && h < max_show_heads; h++) {
+
+            
+            auto key_name = fmt::format("layer_{}_key_{}", start_layer_id + l, h);
+            POWERSERVE_ASSERT(chunk->m_buffers.contains(key_name));
+            chunk -> m_tensors.at(key_name) -> dump(dump_kv_elems);
+
+            auto value_name = fmt::format("layer_{}_value_{}", start_layer_id + l, h);
+            POWERSERVE_ASSERT(chunk->m_buffers.contains(value_name));
+            chunk -> m_tensors.at(value_name) -> dump(dump_kv_elems);
+
+            auto key_t_cache_name = fmt::format("layer_{}_key_t_cache_{}", start_layer_id + l, h);
+            POWERSERVE_ASSERT(chunk->m_buffers.contains(key_t_cache_name));
+            chunk -> m_tensors.at(key_t_cache_name) -> dump(dump_ktc_elems);
+
+            auto value_cache_name = fmt::format("layer_{}_value_cache_{}", start_layer_id + l, h);
+            POWERSERVE_ASSERT(chunk->m_buffers.contains(value_cache_name));
+            chunk -> m_tensors.at(value_cache_name) -> dump(dump_vc_elems);
+        }
+    }
+
+    // OUT: [batch_size, embedding_dim]
+    std::vector<size_t> dump_out_elems={4, 8};
+    chunk -> m_tensors.at("out") -> dump(dump_out_elems);
+
+    fmt::println("--------------------QNN Buffer Dump End--------------------");
+}
+// Debug code end
+#endif //POWERSERVE_DUMP_TENSORS
+
 void CausalLM::Batch::forward() {
     size_t batch_size = pos.size();
 
@@ -246,6 +316,10 @@ void CausalLM::Batch::forward() {
 #else
         chunks[i]->execute();
 #endif
+#ifdef POWERSERVE_DUMP_TENSORS
+        print_chunk_tensors(chunks[i].get(), 2, 2);
+#endif //POWERSERVE_DUMP_TENSORS
+
         if (i + 1 < chunks.size()) {
             memcpy(
                 chunks[i + 1]->input_buffer(),
