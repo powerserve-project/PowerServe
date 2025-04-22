@@ -20,6 +20,11 @@ from itertools import product
 import tqdm
 
 
+# Usage: python main.py
+# The search_config should be modified according to the user's needs
+# The prompt files should be placed in the correct path in advance
+
+
 def dict_product(input_dict):
     keys = input_dict.keys()
     values = input_dict.values()
