@@ -8,6 +8,7 @@ class SoCConfig:
 
 
 soc_map = {
-    "8gen3": SoCConfig(htp_version=75, soc_id=57),
-    "8gen4": SoCConfig(htp_version=79, soc_id=69),
+    "8650": SoCConfig(htp_version=75, soc_id=57),
+    "8750": SoCConfig(htp_version=79, soc_id=69),
+    "8295": SoCConfig(htp_version=68, soc_id=39),
 }

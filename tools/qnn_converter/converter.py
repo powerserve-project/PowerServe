@@ -8,7 +8,10 @@ from soc_config import soc_map
 
 
 def run_shell_command(command):
-    print(f">{' '.join(command.split())}")
+    if args.silent:
+        print(f"> {' '.join(command.split()[:2])}")
+    else:
+        print(f"> {' '.join(command.split())}")
     ret = subprocess.Popen(command, shell=True).wait()
     assert ret == 0
 
@@ -75,6 +78,8 @@ def main(args):
 
         generate_so_command = f"""
         python build_all_layers.py \
+            {'--silent' if args.silent else ''} \
+            --n-threads {args.n_threads} \
             --build-folder {args.build_folder} \
             --batch-size {i} \
             --n-model-chunks {args.n_model_chunks} \
@@ -83,12 +88,15 @@ def main(args):
         """
         run_shell_command(generate_so_command)
 
-        # rm_command = f"rm -rf {args.build_folder}/m*/batch_{i}/data&&rm -rf {args.build_folder}/m*/batch_{i}/onnx_model"
-        # run_shell_command(rm_command)
+        if args.clear_build_files:
+            rm_command = f"rm -rf {args.build_folder}/m*/batch_{i}/data&&rm -rf {args.build_folder}/m*/batch_{i}/onnx_model"
+            run_shell_command(rm_command)
 
     get_config_file(args.build_folder, args.batch_sizes)
     generate_binary_command = f"""
         python build_all_layers.py \
+            {'--silent' if args.silent else ''} \
+            --n-threads {args.n_threads} \
             --build-folder {args.build_folder} \
             --artifact-name {args.artifact_name} \
             --graph-names {" ".join([f"batch_{i}" for i in args.batch_sizes])} \
@@ -99,7 +107,8 @@ def main(args):
 
     get_output_folder(args.output_folder, args.batch_sizes[0], soc_map[args.soc].htp_version)
 
-    # run_shell_command(f"rm -r {args.build_folder}")
+    if args.clear_build_files:
+        run_shell_command(f"rm -r {args.build_folder}/*")
 
 
 if __name__ == "__main__":
@@ -107,21 +116,23 @@ if __name__ == "__main__":
         description="Convert the model in safetensors format to a QNN executable binary format."
     )
 
-    parser.add_argument("--n-threads", type=int, default=24, help="Number of threads to use when exporting to onnx.")
+    parser.add_argument("--n-threads", type=int, default=2, help="Number of threads to use when exporting the model.")
     parser.add_argument("--model-folder", type=str, help="Model folder path.", required=True)
     parser.add_argument("--model-name", type=str, help="Model name.", required=True)
     parser.add_argument(
-        "--system-prompt-file", type=str, default="system_prompt.txt", help="System prompt file path.", required=True
+        "--system-prompt-file", type=str, default="./prompt/system_prompt_llama.txt", help="System prompt file path.", required=True
     )
-    parser.add_argument("--prompt-file", type=str, default="lab_intro.md", help="Prompt file path.", required=True)
+    parser.add_argument("--prompt-file", type=str, default="./prompt/lab_intro_llama.md", help="Prompt file path.", required=True)
     parser.add_argument("--build-folder", type=str, default="./build")
     parser.add_argument("--output-folder", type=str, default="./output")
-    parser.add_argument("--max-n-tokens", type=int, default=1000)
+    parser.add_argument("--max-n-tokens", type=int, default=1280)
     parser.add_argument("--n-model-chunks", type=int, default=1, help="Number of model chunks.")
     parser.add_argument("--artifact-name", type=str, required=True)
     parser.add_argument("--batch-sizes", type=int, nargs="+", required=True)
-    parser.add_argument("--soc", type=str, choices=soc_map.keys(), default="8gen3")
+    parser.add_argument("--soc", type=str, choices=soc_map.keys(), default="8650")
     parser.add_argument("--fp16-lm-head", action="store_true")
+    parser.add_argument("--silent", action="store_true", help="Hide the shell command arguments.")
+    parser.add_argument("--clear-build-files", action="store_true", help="Automatically clear the intermediate files after build. Not compatible with --check-model-accuracy")
 
     args = parser.parse_args()
     main(args)

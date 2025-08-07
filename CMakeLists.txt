@@ -11,6 +11,11 @@ option(POWERSERVE_WITH_PERFETTO "Enable Perfetto tracing" OFF)
 option(POWERSERVE_ANDROID_LOG "Replace the underlying interface of logger with android log interface" OFF)
 option(POWERSERVE_EXCEPTION_ABORT "Replace underlying abort/assert with raising exception" OFF)
 option(POWERSERVE_SERVER_MULTIMODEL "Cache all models used in the memory" OFF)
+option(POWERSERVE_DUMP_TENSORS "Dump all tensors' data to stdout, amount of data configurable in source code" OFF)
+option(POWERSERVE_USE_DUMMY "Enable dummy buffers on QNN" OFF)
+option(POWERSERVE_ENABLE_HMXPWRCFG "Enable HTP power config performance mode, not supported on Hexagon version V68" OFF)
+option(POWERSERVE_ENABLE_HTPRPCPOLL "Enable HTP RPC polling config, not supported on Hexagon version V68" OFF)
+option(POWERSERVE_DUMP_SPEEDINFO "Dump the speed info to file, requires to set environment variable " OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -37,6 +42,26 @@ if (POWERSERVE_ENABLE_ASAN)
         add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
         link_libraries(-fsanitize=address)
     endif()
+endif()
+
+if (POWERSERVE_DUMP_TENSORS)
+    add_compile_definitions(POWERSERVE_DUMP_TENSORS)
+endif()
+
+if (POWERSERVE_USE_DUMMY)
+    add_compile_definitions(POWERSERVE_USE_DUMMY)
+endif()
+
+if (POWERSERVE_ENABLE_HMXPWRCFG)
+    add_compile_definitions(POWERSERVE_ENABLE_HMXPWRCFG)
+endif()
+
+if (POWERSERVE_ENABLE_HTPRPCPOLL)
+    add_compile_definitions(POWERSERVE_ENABLE_HTPRPCPOLL)
+endif()
+
+if (POWERSERVE_DUMP_SPEEDINFO)
+    add_compile_definitions(POWERSERVE_DUMP_SPEEDINFO)
 endif()
 
 if (POWERSERVE_ENABLE_UBSAN)

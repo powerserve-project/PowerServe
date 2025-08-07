@@ -20,6 +20,7 @@
 
 #include <fstream>
 
+#ifdef POWERSERVE_DUMP_SPEEDINFO
 namespace {
 
 using powerserve::getenv;
@@ -27,6 +28,7 @@ using powerserve::getenv;
 static auto dump_file_path = getenv<std::string>("dump_file", "");
 
 } // namespace
+#endif // POWERSERVE_DUMP_SPEEDINFO
 
 namespace powerserve {
 
@@ -37,6 +39,7 @@ TokenTree::TokenTree(const SpeculativeConfig &config) : config(config) {
 }
 
 TokenTree::~TokenTree() {
+#ifdef POWERSERVE_DUMP_SPEEDINFO
     if (!dump_file_path.empty()) {
         nlohmann::json json = {
             {"n_draft_times", stat.n_draft_times},
@@ -50,6 +53,7 @@ TokenTree::~TokenTree() {
         POWERSERVE_ASSERT(dump_file.is_open());
         dump_file << json.dump() << std::endl;
     }
+#endif // POWERSERVE_DUMP_SPEEDINFO
 }
 
 auto TokenTree::tokens() const -> std::vector<Token> {

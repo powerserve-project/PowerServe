@@ -32,6 +32,7 @@ We test these speeds with files in `./assets/prompts`as input prompt files. More
 
 ## News
 - [2025/1/14] We release PowerServe 🎉
+- [2025/4/22] Bug fixes, more debug tools, backward compatability on more Qualcomm hardwares and more QOL updates. Check the new features and improvements in the [release notes](#release-notes).
 
 ## Table of Contents
 
@@ -43,6 +44,7 @@ We test these speeds with files in `./assets/prompts`as input prompt files. More
 6. [Prepare PowerServe Workspace](#prepare-powerserve-workspace)
 7. [Execution](#execution)
 8. [Known Issues](#known-issues)
+9. [Release Notes](#release-notes)
 
 ## End to End Deployment
 
@@ -176,7 +178,9 @@ python converter.py                                 \
     --n-model-chunk 4                               \
     --output-folder ./llama3.1-8b-QNN               \
     --build-folder ./llama3.1-8b-QNN-tmp            \
-    --soc 8gen4
+    --silent \
+    --clear-build-files \
+    --soc 8650
 
 ```
 Convert GGUF models and integrate them with QNN models
@@ -225,7 +229,10 @@ cmake -B build                                                      \
     -DANDROID_ABI=arm64-v8a                                         \
     -DANDROID_PLATFORM=android-35                                   \
     -DGGML_OPENMP=OFF                                               \
-    -DPOWERSERVE_WITH_QNN=ON
+    -DPOWERSERVE_WITH_QNN=ON                                        \
+    -DPOWERSERVE_ENABLE_HTPRPCPOLL=ON                               \
+    -DPOWERSERVE_ENABLE_HMXPWRCFG=ON                                \
+    -DPOWERSERVE_USE_DUMMY=ON
 
 cmake --build build
 ```
@@ -266,15 +273,6 @@ export LD_LIBRARY_PATH=/system/lib64:/vendor/lib64 && ./models/llama3.1-8b-instr
 
 ## Known Issues
 
-### Model Conversion
-
-1. **When exporting model to onnx**: RuntimeError: The serialized model is larger than the 2GiB limit imposed by the protobuf library. Therefore the output file must be a file path, so that the ONNX external data can be written to the same directory. Please specify the output file name.
-
-    > The version of pytorch should be less than **2.5.1**. Please reinstall pytorch like:
-    > ```shell
-    > pip install pytorch==2.4.1
-    > ```
-
 ### Execution
 
 1. **When inferencing with QNN**: Failed to open lib /vendor/lib64/libcdsprpc.so: dlopen failed: library "/vendor/lib64/libcdsprpc.so" needed or dlopened by "/data/data/com.termux/files/home/workspace/qnn/llama-3.2-1b-instruct/bin/powerserve-run" is not accessible for the namespace "(default)
@@ -290,3 +288,35 @@ export LD_LIBRARY_PATH=/system/lib64:/vendor/lib64 && ./models/llama3.1-8b-instr
     | Phone    | Models can't be run |
     |----------|---------------------|
     | All smartphones of HONOR | LLMs larger than 3B |
+
+## Release Notes
+
+[2025/4/22] Bug fixes, more debug tools, backward compatability and more QOL updates.
+
+### Bug fixes
+
+- Fixed a bug that caused the GGUF model loading failure due to the 32-bit system `size_t` overflow.
+- Specify protobuf and pytorch versions in `./tools/qnn_converter/requirements.txt` for support of large models.
+- QNN converter's `--n-threads` flag (defaults to 4) now can also control the maximum thread number of all converting phases
+- QNN converter's library build logs now can be correctly generated across the build directories
+
+### Debug tools
+
+- Tensor dump: Added a debug tool to dump the tensor data in the model. This is useful for debugging and verifying the correctness of the model. To enable the tool, compile the executable with `-DPOWERSERVE_DUMP_TENSORS=ON`. The tensor data is dumped in text format, the format of data is configurable in the source code.
+
+### Backward compatibility
+
+- Added backward compatibility for the SA8295 (Hexagon V68). To run the framework on SA8295, compile the executable with `-DPOWERSERVE_ENABLE_HTPRPCPOLL=OFF` and `-DPOWERSERVE_ENABLE_HMXPWRCFG=OFF`. This is required because the SA8295 does not support these performance configurations.
+
+## QOL updates
+
+- Added several prompt files with instruction templates integrated with the prompt
+- Added `--embd-only` commandline flag to the `convert_hf_to_gguf.py` script to extract only the embedding part of the model, to minimize the disk and memory usage in NPU-only inference scenarios
+- Added `./tools/convert_hf_to_gguf/llama-quantize-x86_64-clang`, an instance of `llama-quantize` executable used for quantizing f32 gguf models into q4 but skips the model completeness check in the original llama.cpp. To quantize a embedding-only gguf model, you need to use this special executable (or skip the sanity check by yourself in llama.cpp).
+- Added end-to-end parameter search from host feature, which is suitable for devices without python environment. All parameter search tools now require the framework executable built with `-DPOWERSERVE_DUMP_SPEEDINFO=ON` to enable the executable to dump speculative tree info / speed info to the file specified in environment variable `dump_file`.
+- Added `--silent` flag to hide the commandline arguments for the qualcomm converter tools
+- Added `--clear-build-files` flag to automatically clear the intermediate build files after build (and also slightly reduces the peak disk usage)
+- `--soc` flag now receives the SoC number (for example, 8650 for Snapdragon 8 Gen 3, 8750 for Snapdragon 8 Elite, 8295 for Automotive SA8295) instead of abbreviation of the SoC to avoid confusion
+- Added spinquant models' export parameters
+- Specified hardware requirements to convert qnn models
+- Added `POWERSERVE_USE_DUMMY` flag to let users decide whether to use dummy buffers to help allocate NPU buffers, should be enabled on SM8650/8750 and disabled on SA8295.

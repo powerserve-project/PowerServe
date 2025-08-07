@@ -305,7 +305,7 @@ class Model:
 
         return False
 
-    def prepare_tensors(self):
+    def prepare_tensors(self, embd_only: bool):
         max_name_len = max(len(s) for _, s in self.tensor_map.mapping.values()) + len(".weight,")
 
         for name, data_torch in self.get_tensors():
@@ -400,7 +400,15 @@ class Model:
                     f"{f'%-{max_name_len}s' % f'{new_name},'} {old_dtype} --> {data_qtype.name}, shape = {shape_str}"
                 )
 
-                self.gguf_writer.add_tensor(new_name, data, raw_dtype=data_qtype)
+                # Cut embeddings, if you are to convert the full model, run the else part only
+                if embd_only:
+                    if new_name.startswith("blk") or new_name.startswith("output"):
+                        print("Embedding only, skipping tensor", new_name)
+                        continue
+                    else:
+                        self.gguf_writer.add_tensor(new_name, data, raw_dtype=data_qtype)
+                else:
+                    self.gguf_writer.add_tensor(new_name, data, raw_dtype=data_qtype)
 
     def set_type(self):
         self.gguf_writer.add_type(gguf.GGUFType.MODEL)
@@ -470,8 +478,8 @@ class Model:
         logger.info("Set model quantization version")
         self.gguf_writer.add_quantization_version(gguf.GGML_QUANT_VERSION)
 
-    def write(self):
-        self.prepare_tensors()
+    def write(self, embd_only: bool):
+        self.prepare_tensors(embd_only)
         self.prepare_metadata(vocab_only=False)
         self.gguf_writer.write_header_to_file(path=self.fname_out)
         self.gguf_writer.write_kv_data_to_file()
@@ -4298,6 +4306,7 @@ class LazyTorchTensor(gguf.LazyBase):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Convert a huggingface model to a GGML compatible file")
     parser.add_argument("--vocab-only", action="store_true", help="extract only the vocab")
+    parser.add_argument("--embd-only", action="store_true", help="extract only the embedding")
     parser.add_argument(
         "--outfile",
         type=Path,
@@ -4426,7 +4435,7 @@ def main() -> None:
             logger.info(f"Model vocab successfully exported to {model_instance.fname_out}")
         else:
             logger.info("Exporting model...")
-            model_instance.write()
+            model_instance.write(args.embd_only)
             out_path = f"{model_instance.fname_out.parent}{os.sep}" if is_split else model_instance.fname_out
             logger.info(f"Model successfully exported to {out_path}")
 

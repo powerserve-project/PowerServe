@@ -15,6 +15,7 @@ parser.add_argument("--artifact-name", type=str, required=True)
 parser.add_argument("--log-file", type=str, default="build_so.log")
 parser.add_argument("--graph-names", type=str, nargs="+", required=True)
 parser.add_argument("--generate-binary", type=bool)
+parser.add_argument("--silent", action="store_true", help="Hide the shell command arguments.")
 args = parser.parse_args()
 
 output_folder: Path = args.output_folder
@@ -24,7 +25,6 @@ qnn_sdk_folder = os.getenv("QNN_SDK_ROOT")
 assert qnn_sdk_folder is not None, "QNN_SDK_ROOT is not set"
 qnn_sdk_folder = Path(qnn_sdk_folder)
 
-log_path = output_folder / args.log_file
 model_path: Path = args.model
 encoding_path: Path = args.encoding
 io_spec_path: Path = args.io_spec
@@ -33,13 +33,16 @@ cpp_path = model_path.with_suffix(".cpp")
 bin_path = model_path.with_suffix(".bin")
 graph_name = model_path.stem
 
-
+log_path = output_folder / args.log_file
 log_file = open(log_path, "w")
-
 
 def run(cmd_args: list):
     cmd = " ".join(map(str, cmd_args))
-    print(f"> {cmd}")
+    if args.silent:
+        cmd_short = " ".join(map(str, cmd_args[:1]))
+        print(f"> {cmd_short}")
+    else:
+        print(f"> {cmd}")
     ret = subprocess.Popen(cmd, shell=True, stdout=log_file, stderr=log_file).wait()
     assert ret == 0
 
@@ -68,6 +71,7 @@ def convert_model():
         "--act_quantizer_schema asymmetric",
         "--input_list",
         input_list_path,
+        "--debug"
     ]
 
     with open(io_spec_path, "r") as f:
@@ -110,6 +114,7 @@ def generate_library():
         graph_name,
         "--output_dir",
         output_folder,
+        "--debug"
     ]
 
     run(cmd_args)

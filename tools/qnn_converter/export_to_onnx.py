@@ -907,7 +907,7 @@ class ModelChunkExporter:
     def export_sample_inputs(self):
         input_list = []
         for i, samples in enumerate(self.model_chunk.saved_samples):
-            data_folder = self.output_folder / "data" / str(i)
+            data_folder = (self.output_folder / "data" / str(i)).resolve()
             data_folder.mkdir(parents=True, exist_ok=True)
 
             tensor_paths = []

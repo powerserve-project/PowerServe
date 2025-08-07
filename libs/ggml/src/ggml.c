@@ -23162,9 +23162,21 @@ static void gguf_tensor_info_sanitize(struct gguf_tensor_info * info) {
 }
 
 static bool gguf_fread_el(FILE * file, void * dst, size_t size, size_t * offset) {
-    const size_t n = fread(dst, 1, size, file);
-    *offset += n;
-    return n == size;
+    size_t BLOCK_SIZE = 1 << 30;
+     if(size > BLOCK_SIZE) printf("[Fread LOG] Reading a BIG file!\n");
+ 
+     size_t remaining_size = size;
+     size_t bytes_read = 0;
+     while(remaining_size > BLOCK_SIZE) {
+         bytes_read += fread(dst, 1, BLOCK_SIZE, file);
+         *offset += BLOCK_SIZE;
+         dst = (char*)dst + BLOCK_SIZE;
+         remaining_size -= BLOCK_SIZE;
+     }
+     bytes_read += fread(dst, 1, remaining_size, file);
+     *offset += remaining_size;
+     
+     return bytes_read == size;
 }
 
 static bool gguf_fread_str(FILE * file, struct gguf_str * p, size_t * offset) {

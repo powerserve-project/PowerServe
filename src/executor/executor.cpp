@@ -48,6 +48,32 @@ void Executor::plan() {
     m_platform.ggml_backends[m_graph.m_model_id]->plan(m_graph.ops);
 }
 
+#ifdef POWERSERVE_DUMP_TENSORS
+// Debug code: dump a tensor's data
+void tensor_dump(Tensor* x, std::vector<size_t> max_show_elems, std::string name) {
+    POWERSERVE_ASSERT(x->m_dtype == DataType::FP32);
+    auto shape = x->m_shape;
+    auto stride = x->get<CPUBuffer>().m_stride;
+    printf("--------------------Dumping GGML tensor-------------------\n");
+    printf("Tensor name: %s\n", name.c_str());
+    printf("Tensor rank: 4\n");
+    printf("Tensor shape: [%ld, %ld, %ld, %ld]\n", shape[3], shape[2], shape[1], shape[0]);
+    printf("Tensor dtype: FP32\n");
+    for (size_t i3 = 0; i3 < shape[3] && i3 < max_show_elems[3]; i3++) {
+        for (size_t i2 = 0; i2 < shape[2] && i2 < max_show_elems[2]; i2++) {
+            for (size_t i1 = 0; i1 < shape[1] && i1 < max_show_elems[1]; i1++) {
+                printf("Dumping elements in dimension [%ld, %ld, %ld]:", i3, i2, i1);
+                for (size_t i0 = 0; i0 < shape[0] && i0 < max_show_elems[0]; i0++) {
+                    float *ptr = (float *)((char *)x->get<CPUBuffer>().m_data + i3 * stride[3] + i2 * stride[2] + i1 * stride[1] + i0 * stride[0]);
+                    printf(" %.6f", (double)*ptr);
+                }
+                printf("\n");
+            }
+        }
+    }
+}
+#endif //POWERSERVE_DUMP_TENSORS
+
 void Executor::run() {
     auto &model_id = m_graph.m_model_id;
     plan();
@@ -59,6 +85,10 @@ void Executor::run() {
             auto out      = op->output();
             auto [tokens] = op->get_params<GetEmbeddingParams>();
             m_platform.ggml_backends[model_id]->get_embedding(out, weight, tokens);
+#ifdef POWERSERVE_DUMP_TENSORS
+            std::vector<size_t> dump_embedding_dims={8, 6, 1, 1};
+            tensor_dump(out, dump_embedding_dims, "Embedding");
+#endif //POWERSERVE_DUMP_TENSORS
         } break;
 
         case OpType::ADD: {
@@ -116,6 +146,10 @@ void Executor::run() {
             auto pos   = op->get_params<QNNForwardParams>().pos;
             auto &mask = op->get_params<QNNForwardParams>().mask;
             m_platform.qnn_backend->forward(m_graph.m_model_id, out, x, pos, mask);
+#ifdef POWERSERVE_DUMP_TENSORS
+            std::vector<size_t> dump_qnn_dims={8, 6, 1, 1};
+            tensor_dump(out, dump_qnn_dims, "QNN");
+#endif //POWERSERVE_DUMP_TENSORS
         } break;
         case OpType::QNN_FORWARD_VL: {
             auto x                  = op->prev[0]->tensor();

@@ -41,6 +41,7 @@ public:
     FileLoaderDIO(const std::filesystem::path &file_path) : FileLoader(file_path) {
         // open file with O_DIRECT for direct I/O
         const int fd = open(m_file_path.c_str(), O_RDONLY | O_DIRECT);
+        POWERSERVE_ASSERT(fd >= 0 && "DIO file loader initialize failed.");
         m_file_handle.reset(fd);
     }
 
